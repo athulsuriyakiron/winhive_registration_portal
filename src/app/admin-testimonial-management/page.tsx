@@ -149,30 +149,31 @@ export default function AdminTestimonialManagement() {
       setError(err.message || 'Failed to save testimonial');
     }
   };
-
+  
   const handleEdit = (testimonial: SuccessStory) => {
-    setEditingId(testimonial.id);
-    setFormData({
-      graduate_name: testimonial.graduate_name,
-      previous_role: testimonial.previous_role,
-      current_role: testimonial.current_role,
-      current_company: testimonial.current_company,
-      salary_before: testimonial.salary_before,
-      salary_after: testimonial.salary_after,
-      testimonial_text: testimonial.testimonial_text,
-      graduation_year: testimonial.graduation_year,
-      course_taken: testimonial.course_taken,
-      key_skills: testimonial.key_skills || [],
-      linkedin_url: testimonial.linkedin_url || '',
-      video_url: testimonial.video_url || '',
-      image_url: testimonial.image_url || '',
-      is_featured: testimonial.is_featured,
-      status: testimonial.status
-    });
-    setImagePreview(testimonial.image_url || '');
-    setIsModalOpen(true);
-  };
+  setEditingId(testimonial.id);
+  setFormData({
+    graduate_name: testimonial.graduateName,
+    previous_role: testimonial.previousRole,
+    current_role: testimonial.currentRole,
+    current_company: testimonial.currentCompany,
+    salary_before: testimonial.salaryBefore,
+    salary_after: testimonial.salaryAfter,
+    testimonial_text: testimonial.testimonialText,
+    graduation_year: testimonial.graduationYear,
+    course_taken: testimonial.courseTaken,
+    key_skills: testimonial.keySkills ?? [],
+    linkedin_url: testimonial.linkedinUrl ?? '',
+    video_url: testimonial.videoUrl ?? '',
+    image_url: testimonial.imageUrl ?? '',
+    is_featured: testimonial.isFeatured,
+    status: testimonial.status
+  });
+  setImagePreview(testimonial.imageUrl ?? '');
+  setIsModalOpen(true);
+};
 
+ 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this testimonial?')) return;
 
