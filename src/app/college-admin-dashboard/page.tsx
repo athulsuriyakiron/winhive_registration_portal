@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { collegeAdminService, DashboardStats } from '@/services/college-admin.service';
 import { realtimeService } from '@/services/realtime.service';
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import type { StudentRow } from '@/types/database.types';
 import { useRouter } from 'next/navigation';
 import { trackFeatureUsage, trackDashboardAction } from '@/lib/analytics-events';
 
@@ -34,17 +35,19 @@ export default function CollegeAdminDashboard() {
     // Subscribe to real-time student verification changes
     const unsubscribeVerifications = realtimeService.subscribeToCollegeStudentVerifications(
       collegeInfo.id,
-      (payload: RealtimePostgresChangesPayload<any>) => {
+      (payload: RealtimePostgresChangesPayload<StudentRow>) => {
         const student = payload?.new;
         const oldStatus = payload?.old?.verification_status;
         const newStatus = student?.verification_status;
 
         // Add notification for verification status change
-        const notification = `Student ${student?.enrollment_number || 'Unknown'} verification status changed from ${oldStatus} to ${newStatus}`;
-        setRealtimeNotifications(prev => [notification, ...prev].slice(0, 5));
-
-        // Refresh dashboard stats
-        fetchDashboardData();
+        if (oldStatus && newStatus && oldStatus !== newStatus) {
+          const notification = `Student ${student?.enrollment_number || 'Unknown'} verification status changed from ${oldStatus} to ${newStatus}`;
+          setRealtimeNotifications(prev => [notification, ...prev].slice(0, 5));
+          
+          // Refresh dashboard stats
+          fetchDashboardData();
+        }
       }
     );
 
