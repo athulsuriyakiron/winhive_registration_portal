@@ -36,9 +36,15 @@ export default function CollegeAdminDashboard() {
     const unsubscribeVerifications = realtimeService.subscribeToCollegeStudentVerifications(
       collegeInfo.id,
       (payload: RealtimePostgresChangesPayload<StudentRow>) => {
-        const student = payload?.new;
-        const oldStatus = payload?.old?.verification_status;
-        const newStatus = student?.verification_status;
+        const student = payload.new;
+        const oldStatus =
+          payload.old && 'verification_status' in payload.old
+            ? payload.old.verification_status
+            : null;
+        const newStatus =
+          payload.new && 'verification_status' in payload.new
+            ? payload.new.verification_status
+            : null;
 
         // Add notification for verification status change
         if (oldStatus && newStatus && oldStatus !== newStatus) {
