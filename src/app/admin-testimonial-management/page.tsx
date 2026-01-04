@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import type { SuccessStory } from '@/types/success-story';
+import type { Database } from '@/types/database';
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 
 
