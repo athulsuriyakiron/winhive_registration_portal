@@ -186,6 +186,18 @@ export interface SuccessStory {
       avatarUrl?: string;
     };
   };
+  // Additional properties for testimonial display (camelCase)
+  graduateName?: string;
+  previousRole?: string;
+  currentRole?: string;
+  currentCompany?: string;
+  salaryBefore?: number;
+  salaryAfter?: number;
+  image?: string;
+  testimonialText?: string;
+  rating?: number;
+  date?: string;
+  status?: 'pending' | 'approved' | 'rejected';
 }
 
 // Notification types
