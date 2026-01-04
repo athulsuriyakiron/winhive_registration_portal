@@ -101,18 +101,18 @@ export interface PremiumFeatureStats {
 
 export interface FreeAccountAllocation {
   id: string;
-  college_id: string;
+  collegeId: string;
   course: string;
-  batch_year: number;
-  total_quota: number;
-  allocated_count: number;
-  available_count: number;
-  allocation_status: 'active' | 'depleted' | 'expired';
-  renewal_date?: string;
+  batchYear: number;
+  totalQuota: number;
+  allocatedCount: number;
+  availableCount: number;
+  allocationStatus: 'active' | 'depleted' | 'expired';
+  renewalDate?: string;
   notes?: string;
-  created_at: string;
-  updated_at: string;
-  created_by?: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy?: string;
   college?: {
     id: string;
     name: string;
@@ -122,33 +122,33 @@ export interface FreeAccountAllocation {
 
 export interface AllocationHistory {
   id: string;
-  allocation_id: string;
-  action_type: string;
-  previous_allocated?: number;
-  new_allocated?: number;
-  student_id?: string;
-  performed_by?: string;
+  allocationId: string;
+  actionType: string;
+  previousAllocated?: number;
+  newAllocated?: number;
+  studentId?: string;
+  performedBy?: string;
   notes?: string;
-  created_at: string;
+  createdAt: string;
   student?: {
     id: string;
-    user_profiles?: {
-      full_name: string;
+    userProfiles?: {
+      fullName: string;
       email: string;
     };
   };
-  performed_by_user?: {
-    full_name: string;
+  performedByUser?: {
+    fullName: string;
     email: string;
   };
 }
 
 export interface AllocationStats {
-  total_quota: number;
-  total_allocated: number;
-  total_available: number;
-  active_allocations: number;
-  depleted_allocations: number;
+  totalQuota: number;
+  totalAllocated: number;
+  totalAvailable: number;
+  activeAllocations: number;
+  depletedAllocations: number;
 }
 
 export interface SuccessStory {
@@ -206,16 +206,16 @@ export type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent';
 
 export interface Notification {
   id: string;
-  user_id: string;
-  notification_type: NotificationType;
+  userId: string;
+  notificationType: NotificationType;
   priority: NotificationPriority;
   title: string;
   message: string;
-  action_url?: string;
-  is_read: boolean;
-  is_archived: boolean;
+  actionUrl?: string;
+  isRead: boolean;
+  isArchived: boolean;
   metadata?: Record<string, any>;
-  created_at: string;
-  read_at?: string;
-  updated_at: string;
+  createdAt: string;
+  readAt?: string;
+  updatedAt: string;
 }

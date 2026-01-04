@@ -1,3 +1,5 @@
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+
 export interface Database {
   public: {
     Tables: {
@@ -230,6 +232,234 @@ export interface Database {
           updated_at?: string;
         };
       };
+      free_account_allocations: {
+        Row: {
+          id: string;
+          college_id: string;
+          course: string;
+          batch_year: number;
+          total_quota: number;
+          allocated_count: number;
+          available_count: number;
+          allocation_status: 'active' | 'depleted' | 'expired';
+          renewal_date: string | null;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          college_id: string;
+          course: string;
+          batch_year: number;
+          total_quota?: number;
+          allocated_count?: number;
+          available_count?: number;
+          allocation_status?: 'active' | 'depleted' | 'expired';
+          renewal_date?: string | null;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          college_id?: string;
+          course?: string;
+          batch_year?: number;
+          total_quota?: number;
+          allocated_count?: number;
+          available_count?: number;
+          allocation_status?: 'active' | 'depleted' | 'expired';
+          renewal_date?: string | null;
+          notes?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      allocation_history: {
+        Row: {
+          id: string;
+          allocation_id: string;
+          student_id: string | null;
+          action_type: string;
+          previous_allocated: number | null;
+          new_allocated: number | null;
+          performed_by: string | null;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          allocation_id: string;
+          student_id?: string | null;
+          action_type: string;
+          previous_allocated?: number | null;
+          new_allocated?: number | null;
+          performed_by?: string | null;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          allocation_id?: string;
+          student_id?: string | null;
+          action_type?: string;
+          previous_allocated?: number | null;
+          new_allocated?: number | null;
+          performed_by?: string | null;
+          notes?: string | null;
+          created_at?: string;
+        };
+      };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          notification_type: 'verification_update' | 'allocation_change' | 'event_alert' | 'system_message';
+          priority: 'low' | 'medium' | 'high' | 'urgent';
+          title: string;
+          message: string;
+          action_url: string | null;
+          is_read: boolean;
+          is_archived: boolean;
+          read_at: string | null;
+          metadata: Record<string, any>;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          notification_type: 'verification_update' | 'allocation_change' | 'event_alert' | 'system_message';
+          priority?: 'low' | 'medium' | 'high' | 'urgent';
+          title: string;
+          message: string;
+          action_url?: string | null;
+          is_read?: boolean;
+          is_archived?: boolean;
+          read_at?: string | null;
+          metadata?: Record<string, any>;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          notification_type?: 'verification_update' | 'allocation_change' | 'event_alert' | 'system_message';
+          priority?: 'low' | 'medium' | 'high' | 'urgent';
+          title?: string;
+          message?: string;
+          action_url?: string | null;
+          is_read?: boolean;
+          is_archived?: boolean;
+          read_at?: string | null;
+          metadata?: Record<string, any>;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      success_stories: {
+        Row: {
+          id: string;
+          student_id: string | null;
+          title: string;
+          story_content: string;
+          company_name: string;
+          company_logo_url: string | null;
+          before_role: string | null;
+          after_role: string;
+          before_salary: number | null;
+          after_salary: number;
+          industry: string | null;
+          placement_year: number | null;
+          video_url: string | null;
+          is_published: boolean;
+          is_featured: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          student_id?: string | null;
+          title: string;
+          story_content: string;
+          company_name: string;
+          company_logo_url?: string | null;
+          before_role?: string | null;
+          after_role: string;
+          before_salary?: number | null;
+          after_salary: number;
+          industry?: string | null;
+          placement_year?: number | null;
+          video_url?: string | null;
+          is_published?: boolean;
+          is_featured?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          student_id?: string | null;
+          title?: string;
+          story_content?: string;
+          company_name?: string;
+          company_logo_url?: string | null;
+          before_role?: string | null;
+          after_role?: string;
+          before_salary?: number | null;
+          after_salary?: number;
+          industry?: string | null;
+          placement_year?: number | null;
+          video_url?: string | null;
+          is_published?: boolean;
+          is_featured?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
   };
 }
+
+// Real-time subscription type helpers
+export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T];
+export type TableRow<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
+export type TableInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
+export type TableUpdate<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
+
+// ✅ STEP 1: Define Specific Row Types for All Tables
+export type UserProfileRow = Database['public']['Tables']['user_profiles']['Row'];
+export type CollegeRow = Database['public']['Tables']['colleges']['Row'];
+export type StudentRow = Database['public']['Tables']['students']['Row'];
+export type MembershipRow = Database['public']['Tables']['memberships']['Row'];
+export type CareerPreferenceRow = Database['public']['Tables']['career_preferences']['Row'];
+export type FreeAccountAllocationRow = Database['public']['Tables']['free_account_allocations']['Row'];
+export type AllocationHistoryRow = Database['public']['Tables']['allocation_history']['Row'];
+export type NotificationRow = Database['public']['Tables']['notifications']['Row'];
+export type SuccessStoryRow = Database['public']['Tables']['success_stories']['Row'];
+
+// Real-time payload types for each table
+export type RealtimePayload<T extends keyof Database['public']['Tables']> = 
+  RealtimePostgresChangesPayload<TableRow<T>>;
+
+// Specific real-time payload types for commonly used tables
+export type StudentRealtimePayload = RealtimePayload<'students'>;
+export type NotificationRealtimePayload = RealtimePayload<'notifications'>;
+export type AllocationRealtimePayload = RealtimePayload<'free_account_allocations'>;
+export type SuccessStoryRealtimePayload = RealtimePayload<'success_stories'>;
+export type CollegeRealtimePayload = RealtimePayload<'colleges'>;
+export type UserProfileRealtimePayload = RealtimePayload<'user_profiles'>;
+export type MembershipRealtimePayload = RealtimePayload<'memberships'>;
+export type CareerPreferenceRealtimePayload = RealtimePayload<'career_preferences'>;
+export type AllocationHistoryRealtimePayload = RealtimePayload<'allocation_history'>;
+
+// Event type for real-time subscriptions
+export type RealtimeEvent = 'INSERT' | 'UPDATE' | 'DELETE' | '*';
+
+// Real-time subscription handler type
+export type RealtimeHandler<T extends keyof Database['public']['Tables']> = (
+  payload: RealtimePayload<T>
+) => void;

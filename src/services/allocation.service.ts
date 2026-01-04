@@ -4,8 +4,51 @@ import type {
   AllocationHistory,
   AllocationStats 
 } from '@/types/models';
+import type { FreeAccountAllocationRow, AllocationHistoryRow } from '@/types/database.types';
 
 const supabase = createClient();
+
+// ✅ Helper function to convert database row to camelCase model
+const mapAllocationRowToModel = (row: FreeAccountAllocationRow & { college?: any }): FreeAccountAllocation => ({
+  id: row.id,
+  collegeId: row.college_id,
+  course: row.course,
+  batchYear: row.batch_year,
+  totalQuota: row.total_quota,
+  allocatedCount: row.allocated_count,
+  availableCount: row.available_count,
+  allocationStatus: row.allocation_status,
+  renewalDate: row.renewal_date || undefined,
+  notes: row.notes || undefined,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+  createdBy: row.created_by || undefined,
+  college: row.college
+});
+
+// ✅ Helper function to convert database history row to camelCase model
+const mapHistoryRowToModel = (row: AllocationHistoryRow & { student?: any; performed_by_user?: any }): AllocationHistory => ({
+  id: row.id,
+  allocationId: row.allocation_id,
+  actionType: row.action_type,
+  previousAllocated: row.previous_allocated || undefined,
+  newAllocated: row.new_allocated || undefined,
+  studentId: row.student_id || undefined,
+  performedBy: row.performed_by || undefined,
+  notes: row.notes || undefined,
+  createdAt: row.created_at,
+  student: row.student ? {
+    id: row.student.id,
+    userProfiles: row.student.user_profiles ? {
+      fullName: row.student.user_profiles.full_name,
+      email: row.student.user_profiles.email
+    } : undefined
+  } : undefined,
+  performedByUser: row.performed_by_user ? {
+    fullName: row.performed_by_user.full_name,
+    email: row.performed_by_user.email
+  } : undefined
+});
 
 export const allocationService = {
   /**
@@ -23,7 +66,7 @@ export const allocationService = {
         .order('batch_year', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      return (data || []).map(mapAllocationRowToModel);
     } catch (error) {
       console.error('Error fetching college allocations:', error);
       throw error;
@@ -42,11 +85,11 @@ export const allocationService = {
       if (error) throw error;
       
       return {
-        total_quota: data?.total_quota || 0,
-        total_allocated: data?.total_allocated || 0,
-        total_available: data?.total_available || 0,
-        active_allocations: data?.active_allocations || 0,
-        depleted_allocations: data?.depleted_allocations || 0
+        totalQuota: data?.total_quota || 0,
+        totalAllocated: data?.total_allocated || 0,
+        totalAvailable: data?.total_available || 0,
+        activeAllocations: data?.active_allocations || 0,
+        depletedAllocations: data?.depleted_allocations || 0
       };
     } catch (error) {
       console.error('Error fetching allocation stats:', error);
@@ -82,10 +125,19 @@ export const allocationService = {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
+      // ✅ Convert camelCase to snake_case for database insertion
       const { data, error } = await supabase
         .from('free_account_allocations')
         .insert({
-          ...allocation,
+          college_id: allocation.collegeId,
+          course: allocation.course,
+          batch_year: allocation.batchYear,
+          total_quota: allocation.totalQuota,
+          allocated_count: allocation.allocatedCount,
+          available_count: allocation.availableCount,
+          allocation_status: allocation.allocationStatus,
+          renewal_date: allocation.renewalDate,
+          notes: allocation.notes,
           created_by: user?.id
         })
         .select()
@@ -95,14 +147,14 @@ export const allocationService = {
 
       // Create history entry
       await this.createHistoryEntry({
-        allocation_id: data.id,
-        action_type: 'INITIAL_ALLOCATION',
-        previous_allocated: 0,
-        new_allocated: allocation.allocated_count || 0,
+        allocationId: data.id,
+        actionType: 'INITIAL_ALLOCATION',
+        previousAllocated: 0,
+        newAllocated: allocation.allocatedCount || 0,
         notes: 'Allocation created'
       });
 
-      return data;
+      return mapAllocationRowToModel(data);
     } catch (error) {
       console.error('Error creating allocation:', error);
       throw error;
@@ -121,9 +173,21 @@ export const allocationService = {
         .eq('id', id)
         .single();
 
+      // ✅ Convert camelCase to snake_case for database update
+      const updateData: any = {};
+      if (updates.collegeId !== undefined) updateData.college_id = updates.collegeId;
+      if (updates.course !== undefined) updateData.course = updates.course;
+      if (updates.batchYear !== undefined) updateData.batch_year = updates.batchYear;
+      if (updates.totalQuota !== undefined) updateData.total_quota = updates.totalQuota;
+      if (updates.allocatedCount !== undefined) updateData.allocated_count = updates.allocatedCount;
+      if (updates.availableCount !== undefined) updateData.available_count = updates.availableCount;
+      if (updates.allocationStatus !== undefined) updateData.allocation_status = updates.allocationStatus;
+      if (updates.renewalDate !== undefined) updateData.renewal_date = updates.renewalDate;
+      if (updates.notes !== undefined) updateData.notes = updates.notes;
+
       const { data, error } = await supabase
         .from('free_account_allocations')
-        .update(updates)
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
@@ -131,17 +195,17 @@ export const allocationService = {
       if (error) throw error;
 
       // Create history entry if allocated count changed
-      if (updates.allocated_count !== undefined && current?.allocated_count !== updates.allocated_count) {
+      if (updates.allocatedCount !== undefined && current?.allocated_count !== updates.allocatedCount) {
         await this.createHistoryEntry({
-          allocation_id: id,
-          action_type: 'ALLOCATION_UPDATED',
-          previous_allocated: current?.allocated_count,
-          new_allocated: updates.allocated_count,
+          allocationId: id,
+          actionType: 'ALLOCATION_UPDATED',
+          previousAllocated: current?.allocated_count,
+          newAllocated: updates.allocatedCount,
           notes: updates.notes || 'Allocation updated'
         });
       }
 
-      return data;
+      return mapAllocationRowToModel(data);
     } catch (error) {
       console.error('Error updating allocation:', error);
       throw error;
@@ -174,11 +238,11 @@ export const allocationService = {
 
       // Create history entry
       await this.createHistoryEntry({
-        allocation_id: allocationId,
-        action_type: 'ACCOUNT_ALLOCATED',
-        previous_allocated: allocation.allocated_count,
-        new_allocated: allocation.allocated_count + 1,
-        student_id: studentId,
+        allocationId: allocationId,
+        actionType: 'ACCOUNT_ALLOCATED',
+        previousAllocated: allocation.allocated_count,
+        newAllocated: allocation.allocated_count + 1,
+        studentId: studentId,
         notes: 'Free account allocated to student'
       });
     } catch (error) {
@@ -203,7 +267,7 @@ export const allocationService = {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data || [];
+      return (data || []).map(mapHistoryRowToModel);
     } catch (error) {
       console.error('Error fetching allocation history:', error);
       throw error;
@@ -217,10 +281,16 @@ export const allocationService = {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
+      // ✅ Convert camelCase to snake_case for database insertion
       const { error } = await supabase
         .from('allocation_history')
         .insert({
-          ...history,
+          allocation_id: history.allocationId,
+          action_type: history.actionType,
+          previous_allocated: history.previousAllocated,
+          new_allocated: history.newAllocated,
+          student_id: history.studentId,
+          notes: history.notes,
           performed_by: user?.id
         });
 

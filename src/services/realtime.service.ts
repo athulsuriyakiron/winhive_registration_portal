@@ -1,5 +1,11 @@
 import { supabase } from '@/lib/supabase/client';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import type { StudentRow, RealtimePayload } from '@/types/database.types';
+
+// ✅ Define proper typed payloads for real-time subscriptions
+type StudentPayload = RealtimePayload<'students'>;
+type AllocationPayload = RealtimePayload<'free_account_allocations'>;
+type AllocationHistoryPayload = RealtimePayload<'allocation_history'>;
 
 // Real-time subscription service for Supabase database changes
 export const realtimeService = {
@@ -11,7 +17,7 @@ export const realtimeService = {
    */
   subscribeToStudentVerification(
     userId: string,
-    onUpdate: (payload: RealtimePostgresChangesPayload<any>) => void
+    onUpdate: (payload: StudentPayload) => void
   ): () => void {
     const channel: RealtimeChannel = supabase
       .channel(`student-verification-${userId}`)
@@ -23,7 +29,7 @@ export const realtimeService = {
           table: 'students',
           filter: `user_id=eq.${userId}`
         },
-        (payload: RealtimePostgresChangesPayload<any>) => {
+        (payload: StudentPayload) => {
           onUpdate(payload);
         }
       )
@@ -42,7 +48,7 @@ export const realtimeService = {
    */
   subscribeToAllocations(
     collegeId: string,
-    onUpdate: (payload: RealtimePostgresChangesPayload<any>) => void
+    onUpdate: (payload: AllocationPayload) => void
   ): () => void {
     const channel: RealtimeChannel = supabase
       .channel(`allocations-${collegeId}`)
@@ -54,7 +60,7 @@ export const realtimeService = {
           table: 'free_account_allocations',
           filter: `college_id=eq.${collegeId}`
         },
-        (payload: RealtimePostgresChangesPayload<any>) => {
+        (payload: AllocationPayload) => {
           onUpdate(payload);
         }
       )
@@ -73,7 +79,7 @@ export const realtimeService = {
    */
   subscribeToAllocationHistory(
     allocationId: string,
-    onUpdate: (payload: RealtimePostgresChangesPayload<any>) => void
+    onUpdate: (payload: AllocationHistoryPayload) => void
   ): () => void {
     const channel: RealtimeChannel = supabase
       .channel(`allocation-history-${allocationId}`)
@@ -85,7 +91,7 @@ export const realtimeService = {
           table: 'allocation_history',
           filter: `allocation_id=eq.${allocationId}`
         },
-        (payload: RealtimePostgresChangesPayload<any>) => {
+        (payload: AllocationHistoryPayload) => {
           onUpdate(payload);
         }
       )
@@ -104,7 +110,7 @@ export const realtimeService = {
    */
   subscribeToCollegeStudentVerifications(
     collegeId: string,
-    onUpdate: (payload: RealtimePostgresChangesPayload<any>) => void
+    onUpdate: (payload: StudentPayload) => void
   ): () => void {
     const channel: RealtimeChannel = supabase
       .channel(`college-students-${collegeId}`)
@@ -116,10 +122,15 @@ export const realtimeService = {
           table: 'students',
           filter: `college_id=eq.${collegeId}`
         },
-        (payload: RealtimePostgresChangesPayload<any>) => {
+        (payload: RealtimePostgresChangesPayload<StudentRow>) => {
+          // ✅ FIXED: Use proper RealtimePostgresChangesPayload<StudentRow> type
+          // payload.new and payload.old are now properly typed as StudentRow | null
+          const oldStatus = payload.old?.verification_status;
+          const newStatus = payload.new?.verification_status;
+          
           // Only trigger callback if verification_status changed
-          if (payload?.new?.verification_status !== payload?.old?.verification_status) {
-            onUpdate(payload);
+          if (newStatus !== oldStatus) {
+            onUpdate(payload as StudentPayload);
           }
         }
       )
@@ -139,8 +150,8 @@ export const realtimeService = {
    */
   subscribeToCollegeAllocations(
     collegeId: string,
-    onAllocationUpdate: (payload: RealtimePostgresChangesPayload<any>) => void,
-    onHistoryUpdate: (payload: RealtimePostgresChangesPayload<any>) => void
+    onAllocationUpdate: (payload: AllocationPayload) => void,
+    onHistoryUpdate: (payload: AllocationHistoryPayload) => void
   ): () => void {
     // Subscribe to allocation changes
     const allocationChannel: RealtimeChannel = supabase
@@ -153,7 +164,7 @@ export const realtimeService = {
           table: 'free_account_allocations',
           filter: `college_id=eq.${collegeId}`
         },
-        (payload: RealtimePostgresChangesPayload<any>) => {
+        (payload: AllocationPayload) => {
           onAllocationUpdate(payload);
         }
       )
@@ -169,7 +180,7 @@ export const realtimeService = {
           schema: 'public',
           table: 'allocation_history'
         },
-        (payload: RealtimePostgresChangesPayload<any>) => {
+        (payload: AllocationHistoryPayload) => {
           onHistoryUpdate(payload);
         }
       )
