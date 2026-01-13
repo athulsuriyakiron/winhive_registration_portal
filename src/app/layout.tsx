@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import type { Metadata, Viewport } from 'next';
 import '../styles/index.css';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
+import { Providers } from './providers';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -26,10 +27,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
       <body>
-        <Suspense fallback={null}>
-          <GoogleAnalytics />
-        </Suspense>
-        {children}
+        <Providers>
+          <Suspense fallback={null}>
+            <GoogleAnalytics />
+          </Suspense>
+          {children}
+        </Providers>
 </body>
     </html>
   );
